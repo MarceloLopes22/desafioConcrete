@@ -7,12 +7,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.desafio.concrete.controller.response.Response;
+import com.desafio.concrete.entidades.LoginDto;
 import com.desafio.concrete.entidades.User;
 import com.desafio.concrete.service.UserService;
 
@@ -25,9 +27,15 @@ public class UserController {
 	private UserService usuarioServico;
 
 	@PostMapping(value = "criar/")
-	//@PreAuthorize("hasAnyRole('ROLE_USUARIO','ROLE_ADMIN')")
 	public ResponseEntity<Response<User>> criar(HttpServletRequest request, @RequestBody User user, BindingResult result) {
 		Response<User> response = usuarioServico.createOrUpdate(user);
+		HttpStatus httpStatus = response.getStatus();
+		return new ResponseEntity<Response<User>>(response, httpStatus);
+	}
+	
+	@GetMapping(value = "login/")
+	public ResponseEntity<Response<User>> login(@RequestBody LoginDto loginDto) {
+		Response<User> response = usuarioServico.login(loginDto);
 		HttpStatus httpStatus = response.getStatus();
 		return new ResponseEntity<Response<User>>(response, httpStatus);
 	}

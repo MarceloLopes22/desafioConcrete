@@ -19,10 +19,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import com.desafio.concrete.controller.response.Response;
+import com.desafio.concrete.entidades.LoginDto;
 import com.desafio.concrete.entidades.Phone;
 import com.desafio.concrete.entidades.User;
 import com.desafio.concrete.repository.UserRepository;
-import com.desafio.concrete.service.PhoneService;
 import com.desafio.concrete.service.UserService;
 
 @Service
@@ -30,9 +30,6 @@ public class UserServiceImpl  implements UserService {
 	
 	@Autowired
 	private UserRepository userRepository;
-	
-	@Autowired
-	private PhoneService phoneService;
 	
 //	@Autowired
 //	private PasswordEncoder passwordEncoder;
@@ -45,11 +42,6 @@ public class UserServiceImpl  implements UserService {
 	@Override
 	public User findByEmailAndPassword(String email, String password) {
 		return this.userRepository.findByEmailAndPassword(email, password);
-	}
-
-	@Override
-	public User findByEmail(String email) {
-		return this.userRepository.findByEmail(email);
 	}
 
 	@Override
@@ -71,8 +63,6 @@ public class UserServiceImpl  implements UserService {
 	private void setUserToPhones(User usuarioSalvo) {
 		List<Phone> phones = usuarioSalvo.getPhones();
 		phones.forEach(phone -> phone.setUser(usuarioSalvo));
-		//List<Phone> list = phoneService.createOrUpdate(phones);
-		//usuarioSalvo.setPhones(list);
 	}
 
 	private void preencherCamposLGPD(User user) {
@@ -131,5 +121,51 @@ public class UserServiceImpl  implements UserService {
 		} catch (BadPaddingException e) {
 			e.printStackTrace();
 		}
+	}
+
+	@Override
+	public Response<User> login(LoginDto loginDto) {
+		Response<User> response = new Response<>();
+		
+		if (StringUtils.isEmpty(loginDto.getEmail()) || StringUtils.isEmpty(loginDto.getPassword())) {
+			response.getErros().put("camposErrors", "Necessário informar email e senha.");
+			response.setStatus(HttpStatus.BAD_REQUEST);
+			return response;
+		}
+		
+		User userReturned = this.userRepository.findByEmailAndPassword(loginDto.getEmail(), loginDto.getPassword());
+		response = validarDadosLogin(loginDto, userReturned, response);
+		return response;
+	}
+
+	private Response<User> validarDadosLogin(LoginDto loginDto, User userConsulted, Response<User> response) {
+		String email = loginDto.getEmail();
+		String password = loginDto.getPassword();
+		
+		if (!email.isEmpty() &&  !password.isEmpty() && userConsulted != null) {
+			// Caso o e-mail e a senha correspondam a um usuário existente, retornar igual ao endpoint de Criação.
+			if (email.equalsIgnoreCase(userConsulted.getEmail()) && password.equalsIgnoreCase(userConsulted.getPassword())) {
+				response.setDado(userConsulted);
+				response.setStatus(HttpStatus.OK);
+				return response;
+			}
+		} else {
+			if (userConsulted == null) {
+				// Caso o e-mail não exista, retornar erro com status apropriado mais a mensagem "Usuário e/ou senha inválidos"
+				User userReturned = this.userRepository.findByEmail(email);
+				String message = "Usuário e/ou senha inválidos.";
+				if (userReturned == null) {
+					response.getErros().put("emailErro", message);
+					response.setStatus(HttpStatus.UNAUTHORIZED);
+				} else {
+					// Caso o e-mail exista mas a senha não bata, retornar o status apropriado 401 mais a mensagem "Usuário e/ou senha inválidos"
+					if (!password.equalsIgnoreCase(userReturned.getPassword())) {
+						response.getErros().put("passwordErro", message);
+						response.setStatus(HttpStatus.UNAUTHORIZED);
+					}
+				}
+			}
+		}
+		return response;
 	}
 }
