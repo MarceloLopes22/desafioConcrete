@@ -1,26 +1,24 @@
-Create database concreteDb;
-
-CREATE TABLE telefone (
-  id INTEGER IDENTITY NOT NULL,
-  ddd VARCHAR(3) NULL,
-  numero VARCHAR(15) NULL,
+CREATE TABLE tb_user (
+  id INTEGER NOT NULL,
+  name VARCHAR NULL,
+  email VARCHAR NULL,
+  password_2 VARCHAR NULL,
+  created DATE NULL,
+  modified DATE NULL,
+  last_login DATE NULL,
+  token VARCHAR NULL,
   PRIMARY KEY(id)
 );
 
-CREATE TABLE usuario (
-  id INTEGER IDENTITY NOT NULL,
-  telefone_id INTEGER NOT NULL,
-  nome VARCHAR(100) NULL,
-  email VARCHAR(50) NULL,
-  senha VARCHAR(50) NULL,
-  data_criacao DATE NULL,
-  data_alteracao DATE NULL,
-  data_ultimo_login DATE NULL,
-  token VARCHAR(100) NULL,
+CREATE TABLE tb_phone (
+  id INTEGER NOT NULL,
+  tb_user_id INTEGER NOT NULL,
+  ddd VARCHAR NULL,
+  number VARCHAR NULL,
   PRIMARY KEY(id),
-  INDEX usuario_FKIndex1(telefone_id),
-  FOREIGN KEY(telefone_id)
-    REFERENCES telefone(id)
+  INDEX tb_phone_FKIndex1(tb_user_id),
+  FOREIGN KEY(tb_user_id)
+    REFERENCES tb_user(id)
       ON DELETE NO ACTION
       ON UPDATE NO ACTION
 );
