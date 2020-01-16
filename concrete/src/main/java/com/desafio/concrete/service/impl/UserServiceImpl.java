@@ -31,17 +31,9 @@ public class UserServiceImpl  implements UserService {
 	@Autowired
 	private UserRepository userRepository;
 	
-//	@Autowired
-//	private PasswordEncoder passwordEncoder;
-//	
-//	@Bean
-//	public PasswordEncoder passwordEncoder() {
-//	    return new BCryptPasswordEncoder();
-//	}
-
 	@Override
 	public User findByEmailAndPassword(String email, String password) {
-		return this.userRepository.findByEmailAndPassword(email, password);
+		return this.userRepository.findUserByEmailAndPassword(email, password);
 	}
 
 	@Override
@@ -50,7 +42,6 @@ public class UserServiceImpl  implements UserService {
 		response = validar(user, response);
 		if (response.getErros().isEmpty()) {
 			preencherCamposLGPD(user);
-			//usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
 			gerarUuid(user);
 			setUserToPhones(user);
 			User usuarioSalvo = this.userRepository.save(user);
@@ -62,7 +53,9 @@ public class UserServiceImpl  implements UserService {
 
 	private void setUserToPhones(User usuarioSalvo) {
 		List<Phone> phones = usuarioSalvo.getPhones();
-		phones.forEach(phone -> phone.setUser(usuarioSalvo));
+		if (phones != null && !phones.isEmpty()) {
+			phones.forEach(phone -> phone.setUser(usuarioSalvo));
+		}
 	}
 
 	private void preencherCamposLGPD(User user) {
@@ -84,7 +77,7 @@ public class UserServiceImpl  implements UserService {
 				response.getErros().put("emailErro", "O email do usuario deve ser preenchido.");
 				response.setStatus(HttpStatus.BAD_REQUEST);
 			} else {
-				User userFind = userRepository.findByEmail(user.getEmail());
+				User userFind = userRepository.findUserByEmail(user.getEmail());
 				if (userFind != null) {
 					response.getErros().put("emailErro", "E-mail já existente.");
 					response.setStatus(HttpStatus.BAD_REQUEST);
@@ -133,7 +126,7 @@ public class UserServiceImpl  implements UserService {
 			return response;
 		}
 		
-		User userReturned = this.userRepository.findByEmailAndPassword(loginDto.getEmail(), loginDto.getPassword());
+		User userReturned = this.userRepository.findUserByEmailAndPassword(loginDto.getEmail(), loginDto.getPassword());
 		response = validarDadosLogin(loginDto, userReturned, response);
 		return response;
 	}
@@ -152,7 +145,7 @@ public class UserServiceImpl  implements UserService {
 		} else {
 			if (userConsulted == null) {
 				// Caso o e-mail não exista, retornar erro com status apropriado mais a mensagem "Usuário e/ou senha inválidos"
-				User userReturned = this.userRepository.findByEmail(email);
+				User userReturned = this.userRepository.findUserByEmail(email);
 				String message = "Usuário e/ou senha inválidos.";
 				if (userReturned == null) {
 					response.getErros().put("emailErro", message);
@@ -167,5 +160,14 @@ public class UserServiceImpl  implements UserService {
 			}
 		}
 		return response;
+	}
+
+	@Override
+	public Response<User> findByEmail(String email) {
+		Response<User> response = new Response<User>();
+		 User findByEmail = userRepository.findUserByEmail(email);
+		 response.setDado(findByEmail);
+		 response.setStatus(HttpStatus.OK);
+		 return response;
 	}
 }

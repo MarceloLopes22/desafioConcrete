@@ -1,22 +1,31 @@
 package com.desafio.concrete;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
 
+import com.desafio.concrete.controller.response.Response;
+import com.desafio.concrete.entidades.Phone;
+import com.desafio.concrete.entidades.User;
+import com.desafio.concrete.enums.Profile;
 import com.desafio.concrete.service.UserService;
 
 @SpringBootApplication(scanBasePackages = "com.desafio.concrete.*")
 public class ConcreteApplication {
 
 	@Autowired
-	private UserService usuarioServico;
+	private UserService userServico;
 	
 	public static void main(String[] args) {
 		SpringApplication.run(ConcreteApplication.class, args);
 	}
 
-	/*@Bean
+	@Bean
 	CommandLineRunner inicializar() {
 		return args -> {
 			initUsuario();
@@ -24,35 +33,53 @@ public class ConcreteApplication {
 	}
 	
 	private void initUsuario() {
-		Usuario mFilho = criarUsuarioAdmin();
-		Usuario marcelo = criarUsuarioMarcelo();
+		User mFilho = criarUserAdmin();
+		User marcelo = criarUserMarcelo();
 		
-		Usuario findMFilho = usuarioServico.findByEmail(mFilho.getEmail());
+		Response<User> findByEmail = userServico.findByEmail(mFilho.getEmail());
+		User findMFilho = findByEmail.getDado();
 		if (findMFilho == null) {
-			usuarioServico.createOrUpdate(mFilho);
+			userServico.createOrUpdate(mFilho);
 		}
 		
-		Usuario findMarcelo = usuarioServico.findByEmail(marcelo.getEmail());
+		Response<User> byEmail = userServico.findByEmail(marcelo.getEmail());
+		User findMarcelo = byEmail.getDado();
 		if (findMarcelo == null) {
-			usuarioServico.createOrUpdate(marcelo);
+			userServico.createOrUpdate(marcelo);
 		}
 	}
 
-	private Usuario criarUsuarioMarcelo() {
-		Usuario marcelo = new Usuario();
-		marcelo.setNome("Marcelo Lopes");
+	private User criarUserMarcelo() {
+		User marcelo = new User();
+		marcelo.setName("Marcelo Lopes");
 		marcelo.setEmail("marcelomlopes2@gmail.com");
-		marcelo.setSenha("123456");
-		marcelo.setPerfil(Perfil.ROLE_USUARIO);
+		marcelo.setPassword("123456");
+		marcelo.setProfile(Profile.ROLE_USUARIO);
+
+		List<Phone> createPhones = createPhones();
+		marcelo.setPhones(createPhones);
+		
 		return marcelo;
 	}
 
-	private Usuario criarUsuarioAdmin() {
-		Usuario mFilho = new Usuario();
-		mFilho.setNome("Marcelo Filho");
+	private List<Phone> createPhones() {
+		List<Phone> phones = new ArrayList<>();
+		Phone phone = new Phone();
+		phone.setDdd("81");
+		phone.setNumber("995253601");
+		phones.add(phone);
+		return phones;
+	}
+
+	private User criarUserAdmin() {
+		User mFilho = new User();
+		mFilho.setName("Marcelo Filho");
 		mFilho.setEmail("mfilho@gmail.com");
-		mFilho.setSenha("1234");
-		mFilho.setPerfil(Perfil.ROLE_USUARIO);
+		mFilho.setPassword("1234");
+		mFilho.setProfile(Profile.ROLE_USUARIO);
+		
+		List<Phone> createPhones = createPhones();
+		mFilho.setPhones(createPhones);
 		return mFilho;
-	}*/
+	}
 }

@@ -5,11 +5,14 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 
 public class Response<T> {
 
 	private T dado;
 	
+	@JsonProperty("status")
 	private HttpStatus status;
 	
 	private Map<String,String> erros;
@@ -21,7 +24,6 @@ public class Response<T> {
 	public void setDado(T dado) {
 		this.dado = dado;
 	}
-
 	public HttpStatus getStatus() {
 		return status;
 	}

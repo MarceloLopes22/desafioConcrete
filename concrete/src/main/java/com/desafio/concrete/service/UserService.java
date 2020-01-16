@@ -8,6 +8,8 @@ public interface UserService {
 
 	User findByEmailAndPassword(String email, String password);
 	
+	Response<User> findByEmail(String email);
+	
 	Response<User> createOrUpdate(User user);
 
 	Response<User> login(LoginDto loginDto);

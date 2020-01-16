@@ -8,9 +8,7 @@ import com.desafio.concrete.entidades.User;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
-	User findByEmailAndPassword(String email, String password);
+	User findUserByEmailAndPassword(String email, String password);
 	
-	User findByEmail(String email);
-	
-	User findByPassword(String password);
+	User findUserByEmail(String email);
 }
