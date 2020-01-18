@@ -1,17 +1,9 @@
 package com.desafio.concrete.service.impl;
 
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
-import java.util.Base64;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.UUID;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.spec.SecretKeySpec;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,12 +16,16 @@ import com.desafio.concrete.entidades.Phone;
 import com.desafio.concrete.entidades.User;
 import com.desafio.concrete.repository.UserRepository;
 import com.desafio.concrete.service.UserService;
+import com.desafio.concrete.utils.Util;
 
 @Service
 public class UserServiceImpl  implements UserService {
 	
 	@Autowired
 	private UserRepository userRepository;
+
+	@Autowired
+	private Util util;
 	
 	@Override
 	public User findByEmailAndPassword(String email, String password) {
@@ -37,12 +33,13 @@ public class UserServiceImpl  implements UserService {
 	}
 
 	@Override
-	public Response<User> createOrUpdate(User user) {
+	public Response<User> create(User user) {
 		Response<User> response = new Response<>();
 		response = validar(user, response);
 		if (response.getErros().isEmpty()) {
 			preencherCamposLGPD(user);
-			gerarUuid(user);
+			util.gerarUuid(user);
+			util.encriptyPassword(user);
 			setUserToPhones(user);
 			User usuarioSalvo = this.userRepository.save(user);
 			response.setDado(usuarioSalvo);
@@ -60,14 +57,11 @@ public class UserServiceImpl  implements UserService {
 
 	private void preencherCamposLGPD(User user) {
 		user.setCreated(LocalDate.now());
-		if (user.getId() != null && user.getId() > 0) {
-			user.setModified(LocalDate.now());
-		}
-		user.setLast_login(LocalDate.now());
+		user.setModified(LocalDate.now());
+		user.setLast_login(LocalDateTime.now());
 	}
 
 	private Response<User> validar(User user, Response<User> response) {
-		
 		if (user != null) {
 			if (StringUtils.isEmpty(user.getName())) {
 				response.getErros().put("nomeErro", "O nome do usuario deve ser preenchido.");
@@ -92,30 +86,6 @@ public class UserServiceImpl  implements UserService {
 		return response;
 	}
 
-	private void gerarUuid(User user) {
-	    String a = UUID.randomUUID().toString().substring(0,16);
-	    SecretKeySpec key = new SecretKeySpec(a.getBytes(), "AES");
-		try {
-			Cipher cipher = Cipher.getInstance("AES");
-			cipher.init(Cipher.ENCRYPT_MODE, key);	 	 
-			String email = user.getEmail();
-			String password = user.getPassword();
-			byte[] messageEncriptada = cipher.doFinal(email.concat(password).getBytes());	 	 
-			String token = Base64.getEncoder().encodeToString(messageEncriptada);
-			user.setToken(token);
-		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
-		} catch (NoSuchPaddingException e) {
-			e.printStackTrace();
-		} catch (InvalidKeyException e) {
-			e.printStackTrace();
-		} catch (IllegalBlockSizeException e) {
-			e.printStackTrace();
-		} catch (BadPaddingException e) {
-			e.printStackTrace();
-		}
-	}
-
 	@Override
 	public Response<User> login(LoginDto loginDto) {
 		Response<User> response = new Response<>();
@@ -125,19 +95,25 @@ public class UserServiceImpl  implements UserService {
 			response.setStatus(HttpStatus.BAD_REQUEST);
 			return response;
 		}
-		
+		util.encriptyPassword(loginDto);
 		User userReturned = this.userRepository.findUserByEmailAndPassword(loginDto.getEmail(), loginDto.getPassword());
 		response = validarDadosLogin(loginDto, userReturned, response);
+		validarDadosPerfilUsuario(loginDto, userReturned, response);
 		return response;
 	}
-
+	
 	private Response<User> validarDadosLogin(LoginDto loginDto, User userConsulted, Response<User> response) {
 		String email = loginDto.getEmail();
 		String password = loginDto.getPassword();
 		
-		if (!email.isEmpty() &&  !password.isEmpty() && userConsulted != null) {
+		if (!email.isEmpty() && !password.isEmpty() && userConsulted != null) {
 			// Caso o e-mail e a senha correspondam a um usuário existente, retornar igual ao endpoint de Criação.
 			if (email.equalsIgnoreCase(userConsulted.getEmail()) && password.equalsIgnoreCase(userConsulted.getPassword())) {
+				
+				//Seta a data de modificação para identificar o tempo do ultimo login efetuado.
+				userConsulted.setLast_login(LocalDateTime.now());
+				this.userRepository.save(userConsulted);
+				
 				response.setDado(userConsulted);
 				response.setStatus(HttpStatus.OK);
 				return response;
@@ -162,6 +138,38 @@ public class UserServiceImpl  implements UserService {
 		return response;
 	}
 
+	@SuppressWarnings("unused")
+	private void validarDadosPerfilUsuario(LoginDto loginDto, User userReturned, Response<User> response) {
+		if (response.getErros().isEmpty()) {
+			User user = response.getDado();
+			String token = user.getToken();
+			
+			//Caso o token não exista, retornar erro com status apropriado com a mensagem "Não autorizado".
+			if (StringUtils.isEmpty(token)) {
+				response.setStatus(HttpStatus.UNAUTHORIZED);
+				response.getErros().put("loginErro", "Não autorizado.");
+			}
+			
+			//Caso não seja o mesmo token, retornar erro com status apropriado e mensagem "Não autorizado"
+			User userByToken = findUserByToken(token);
+			if (userByToken != null && !StringUtils.isEmpty(token) && !userByToken.getToken().equalsIgnoreCase(token)) {
+				response.setStatus(HttpStatus.UNAUTHORIZED);
+				response.getErros().put("loginErro", "Não autorizado.");
+			}
+			
+			//Caso o token exista, buscar o usuário pelo id passado no path e comparar se o token no modelo é igual ao token passado no header.
+			if (userByToken != null && !StringUtils.isEmpty(token) && !StringUtils.isEmpty(userByToken.getToken()) && userByToken.getToken().equalsIgnoreCase(token)) {
+				//Caso seja o mesmo token, verificar se o último login foi a MENOS que 30 minutos atrás. Caso não seja a MENOS que 30 minutos atrás, 
+				//retornar erro com status apropriado com mensagem "Sessão inválida".
+				long difference = ChronoUnit.MINUTES.between(userByToken.getLast_login(), LocalDateTime.now());
+				if(difference > 30 * 60 * 1000) {
+					response.setStatus(HttpStatus.FORBIDDEN);
+					response.getErros().put("loginErro", "Sessão inválida.");
+				}
+			}
+		}
+	}
+
 	@Override
 	public Response<User> findByEmail(String email) {
 		Response<User> response = new Response<User>();
@@ -169,5 +177,29 @@ public class UserServiceImpl  implements UserService {
 		 response.setDado(findByEmail);
 		 response.setStatus(HttpStatus.OK);
 		 return response;
+	}
+
+	@Override
+	public User findUserByToken(String token) {
+		return userRepository.findUserByToken(token);
+	}
+	
+	@Override
+	public void delete(User user) {
+		userRepository.delete(user);
+	}
+
+	@Override
+	public void update(User user) {
+		userRepository.saveAndFlush(user);
+	}
+	
+	@Override
+	public Response<List<User>> users() {
+		Response<List<User>> response = new Response<List<User>>();
+		List<User> list = userRepository.findAll();
+		response.setDado(list);
+		response.setStatus(HttpStatus.OK);
+		return response;
 	}
 }

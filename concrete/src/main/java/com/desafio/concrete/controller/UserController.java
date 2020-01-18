@@ -1,5 +1,7 @@
 package com.desafio.concrete.controller;
 
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,24 +22,31 @@ import com.desafio.concrete.service.UserService;
 
 @RestController
 @RequestMapping("/api/usuario/")
-@CrossOrigin(origins = "*")
+@CrossOrigin("*")
 public class UserController {
 
 	@Autowired
-	private UserService usuarioServico;
-
+	private UserService userServico;
+	
 	@PostMapping(value = "criar/")
 	public ResponseEntity<Response<User>> criar(HttpServletRequest request, @RequestBody User user, BindingResult result) {
-		Response<User> response = usuarioServico.createOrUpdate(user);
+		Response<User> response = userServico.create(user);
 		HttpStatus httpStatus = response.getStatus();
 		return new ResponseEntity<Response<User>>(response, httpStatus);
 	}
 	
 	@RequestMapping(value = "login/", method = RequestMethod.GET)
 	public ResponseEntity<Response<User>> login(@RequestBody LoginDto loginDto) {
-		Response<User> response = usuarioServico.login(loginDto);
+		Response<User> response = userServico.login(loginDto);
 		HttpStatus httpStatus = response.getStatus();
 		return new ResponseEntity<Response<User>>(response, httpStatus);
 	}
-
+	
+	@RequestMapping(value = "listar/", method = RequestMethod.GET)
+	public ResponseEntity<Response<List<User>>> login() {
+		Response<List<User>> response = userServico.users();
+		HttpStatus httpStatus = response.getStatus();
+		return new ResponseEntity<Response<List<User>>>(response, httpStatus);
+	}
+	
 }

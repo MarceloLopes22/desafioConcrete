@@ -1,15 +1,14 @@
 package com.desafio.concrete;
 
+
 import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -22,11 +21,10 @@ import org.springframework.test.context.junit4.SpringRunner;
 import com.desafio.concrete.controller.response.Response;
 import com.desafio.concrete.entidades.Phone;
 import com.desafio.concrete.entidades.User;
+import com.desafio.concrete.service.UserService;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = ConcreteApplication.class, webEnvironment = WebEnvironment.RANDOM_PORT)
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@SuppressWarnings("rawtypes")
 public class TestsHttpStatus {
 	
 	@LocalServerPort
@@ -35,13 +33,24 @@ public class TestsHttpStatus {
     @Autowired
     private TestRestTemplate restTemplate;
     
+    @Autowired
+    private UserService userService;
+    
    @Test
     public void testCriarUser() {
     	User user = createUser();
+    	removerObjetoExistente(user);
     	String url = "http://localhost:" + port + "/api/usuario/";
     	ResponseEntity<Response> responseEntity = restTemplate.postForEntity(url.concat("criar/"), user, Response.class);
     	assertEquals(HttpStatus.CREATED.value(), responseEntity.getStatusCodeValue());
     }
+
+	private void removerObjetoExistente(User user) {
+		Response<User> byEmail = userService.findByEmail(user.getEmail());
+		if (byEmail.getDado() != null) {
+			userService.delete(byEmail.getDado());
+		}
+	}
     
 	@Test
     public void testCriarUserNameErrorStatusCode() {

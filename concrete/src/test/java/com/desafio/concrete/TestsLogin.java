@@ -1,17 +1,16 @@
 package com.desafio.concrete;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.FixMethodOrder;
+import org.aspectj.lang.annotation.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -21,22 +20,22 @@ import com.desafio.concrete.entidades.LoginDto;
 import com.desafio.concrete.entidades.Phone;
 import com.desafio.concrete.entidades.User;
 import com.desafio.concrete.service.UserService;
+import com.desafio.concrete.utils.Util;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestsLogin {
     
     @Autowired
     private UserService userService;
     
-	@Before
+    @Autowired
+    private Util util;
+    
+	@Before(value = "")
 	public void setup() {
 		mock(UserService.class);
 		mock(Response.class);
-		
-		User user = createUser();
-		userService.createOrUpdate(user);
 	}
     
 	@Test
@@ -94,6 +93,34 @@ public class TestsLogin {
 		assertEquals(HttpStatus.UNAUTHORIZED.value(), status.value());
 	}
 	
+	//Caso o token não exista, retornar erro com status apropriado com a mensagem "Não autorizado".
+	@Test
+	public void testLoginTokenNotExist() {
+		LoginDto loginDto = createLoginDto();
+		Response<User> findByEmail = userService.findByEmail(loginDto.getEmail());
+		modificarToken1(findByEmail);
+		Response<User> response = userService.login(loginDto);
+		HttpStatus status = response.getStatus();
+		String passwordMessage = response.getErros().values().iterator().next();
+		assertEquals("Não autorizado.", passwordMessage);
+		assertEquals(HttpStatus.UNAUTHORIZED.value(), status.value());
+		userService.delete(findByEmail.getDado());
+		userService.create(createUser());
+	}
+
+	private void modificarToken1(Response<User> findByEmail) {
+		if (findByEmail != null) {
+			User user = findByEmail.getDado();
+			user.setToken(null);
+			userService.update(user);
+		}
+	}
+	
+	private LoginDto createLoginDto() {
+		LoginDto dto = new LoginDto("joao@silva.org","hunter2");
+		return dto;
+	}
+	
 	private User createUser() {
 		User user = new User();
 		user.setName("João da Silva");
@@ -106,13 +133,6 @@ public class TestsLogin {
 		phones.add(phone);
 		user.setPhones(phones);
 		return user;
-	}
-	
-	private LoginDto createLoginDto() {
-		LoginDto dto = new LoginDto();
-		dto.setEmail("joao@silva.org");
-		dto.setPassword("hunter2");
-		return dto;
 	}
 
 }
