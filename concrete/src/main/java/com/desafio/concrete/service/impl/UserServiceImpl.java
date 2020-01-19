@@ -138,7 +138,6 @@ public class UserServiceImpl  implements UserService {
 		return response;
 	}
 
-	@SuppressWarnings("unused")
 	private void validarDadosPerfilUsuario(LoginDto loginDto, User userReturned, Response<User> response) {
 		if (response.getErros().isEmpty()) {
 			User user = response.getDado();

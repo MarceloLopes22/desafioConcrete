@@ -10,7 +10,6 @@ import org.aspectj.lang.annotation.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -20,7 +19,6 @@ import com.desafio.concrete.entidades.LoginDto;
 import com.desafio.concrete.entidades.Phone;
 import com.desafio.concrete.entidades.User;
 import com.desafio.concrete.service.UserService;
-import com.desafio.concrete.utils.Util;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -28,9 +26,6 @@ public class TestsLogin {
     
     @Autowired
     private UserService userService;
-    
-    @Autowired
-    private Util util;
     
 	@Before(value = "")
 	public void setup() {
