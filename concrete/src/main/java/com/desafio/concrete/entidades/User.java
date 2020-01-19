@@ -62,7 +62,11 @@ public class User implements Serializable {
 	@Column(name = "profile_id", nullable = true)
 	private Profile profile;
 	
-	public User() {
+	public User() {}
+	
+	public User(String email, String password) {
+		setEmail(email);
+		setPassword(password);
 	}
 
 	public Integer getId() {

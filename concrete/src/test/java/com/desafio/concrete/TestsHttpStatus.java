@@ -25,7 +25,6 @@ import com.desafio.concrete.service.UserService;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = ConcreteApplication.class, webEnvironment = WebEnvironment.RANDOM_PORT)
-@SuppressWarnings("rawtypes")
 public class TestsHttpStatus {
 	
 	@LocalServerPort
@@ -37,8 +36,7 @@ public class TestsHttpStatus {
     @Autowired
     private UserService userService;
     
-   
-    @Test
+   @Test
     public void testCriarUser() {
     	User user = createUser();
     	removerObjetoExistente(user);

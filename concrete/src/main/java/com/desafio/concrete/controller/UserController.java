@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.desafio.concrete.controller.response.Response;
-import com.desafio.concrete.entidades.LoginDto;
 import com.desafio.concrete.entidades.User;
 import com.desafio.concrete.service.UserService;
 
@@ -36,8 +35,8 @@ public class UserController {
 	}
 	
 	@RequestMapping(value = "login/", method = RequestMethod.GET)
-	public ResponseEntity<Response<User>> login(@RequestBody LoginDto loginDto) {
-		Response<User> response = userServico.login(loginDto);
+	public ResponseEntity<Response<User>> login(@RequestBody User user) {
+		Response<User> response = userServico.login(user);
 		HttpStatus httpStatus = response.getStatus();
 		return new ResponseEntity<Response<User>>(response, httpStatus);
 	}

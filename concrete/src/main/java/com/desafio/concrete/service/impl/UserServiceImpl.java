@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import com.desafio.concrete.controller.response.Response;
-import com.desafio.concrete.entidades.LoginDto;
 import com.desafio.concrete.entidades.Phone;
 import com.desafio.concrete.entidades.User;
 import com.desafio.concrete.repository.UserRepository;
@@ -87,24 +86,24 @@ public class UserServiceImpl  implements UserService {
 	}
 
 	@Override
-	public Response<User> login(LoginDto loginDto) {
+	public Response<User> login(User userTela) {
 		Response<User> response = new Response<>();
 		
-		if (StringUtils.isEmpty(loginDto.getEmail()) || StringUtils.isEmpty(loginDto.getPassword())) {
+		if (StringUtils.isEmpty(userTela.getEmail()) || StringUtils.isEmpty(userTela.getPassword())) {
 			response.getErros().put("camposErrors", "Necessário informar email e senha.");
 			response.setStatus(HttpStatus.BAD_REQUEST);
 			return response;
 		}
-		util.encriptyPassword(loginDto);
-		User userReturned = this.userRepository.findUserByEmailAndPassword(loginDto.getEmail(), loginDto.getPassword());
-		response = validarDadosLogin(loginDto, userReturned, response);
-		validarDadosPerfilUsuario(loginDto, userReturned, response);
+		util.encriptyPassword(userTela);
+		User userReturned = this.userRepository.findUserByEmailAndPassword(userTela.getEmail(), userTela.getPassword());
+		response = validarDadosLogin(userTela, userReturned, response);
+		validarDadosPerfilUsuario(userTela, userReturned, response);
 		return response;
 	}
 	
-	private Response<User> validarDadosLogin(LoginDto loginDto, User userConsulted, Response<User> response) {
-		String email = loginDto.getEmail();
-		String password = loginDto.getPassword();
+	private Response<User> validarDadosLogin(User userTela, User userConsulted, Response<User> response) {
+		String email = userTela.getEmail();
+		String password = userTela.getPassword();
 		
 		if (!email.isEmpty() && !password.isEmpty() && userConsulted != null) {
 			// Caso o e-mail e a senha correspondam a um usuário existente, retornar igual ao endpoint de Criação.
@@ -138,7 +137,7 @@ public class UserServiceImpl  implements UserService {
 		return response;
 	}
 
-	private void validarDadosPerfilUsuario(LoginDto loginDto, User userReturned, Response<User> response) {
+	private void validarDadosPerfilUsuario(User userTela, User userReturned, Response<User> response) {
 		if (response.getErros().isEmpty()) {
 			User user = response.getDado();
 			String token = user.getToken();

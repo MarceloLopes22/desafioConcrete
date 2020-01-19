@@ -3,7 +3,6 @@ package com.desafio.concrete.service;
 import java.util.List;
 
 import com.desafio.concrete.controller.response.Response;
-import com.desafio.concrete.entidades.LoginDto;
 import com.desafio.concrete.entidades.User;
 
 public interface UserService {
@@ -16,7 +15,7 @@ public interface UserService {
 	
 	void update(User user);
 
-	Response<User> login(LoginDto loginDto);
+	Response<User> login(User user);
 	
 	User findUserByToken(String token);
 	

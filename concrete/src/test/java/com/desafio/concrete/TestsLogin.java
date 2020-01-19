@@ -15,7 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.desafio.concrete.controller.response.Response;
-import com.desafio.concrete.entidades.LoginDto;
 import com.desafio.concrete.entidades.Phone;
 import com.desafio.concrete.entidades.User;
 import com.desafio.concrete.service.UserService;
@@ -27,7 +26,7 @@ public class TestsLogin {
     @Autowired
     private UserService userService;
     
-	@Before(value = "")
+    @Before(value = "")
 	public void setup() {
 		mock(UserService.class);
 		mock(Response.class);
@@ -35,7 +34,7 @@ public class TestsLogin {
     
 	@Test
 	public void testLoginSucesso() {
-		LoginDto loginDto = createLoginDto();
+		User loginDto = createUserLogin();
 		Response<User> login = userService.login(loginDto);
 		HttpStatus status = login.getStatus();
 		assertEquals(loginDto.getEmail(), login.getDado().getEmail());
@@ -45,7 +44,7 @@ public class TestsLogin {
 	
 	@Test
 	public void testLoginEmailInvalido() {
-		LoginDto loginDto = createLoginDto();
+		User loginDto = createUserLogin();
 		loginDto.setEmail(null);
 		Response<User> response = userService.login(loginDto);
 		HttpStatus status = response.getStatus();
@@ -56,7 +55,7 @@ public class TestsLogin {
 	
 	@Test
 	public void testLoginPasswordInvalido() {
-		LoginDto loginDto = createLoginDto();
+		User loginDto = createUserLogin();
 		loginDto.setPassword(null);
 		Response<User> response = userService.login(loginDto);
 		HttpStatus status = response.getStatus();
@@ -68,7 +67,7 @@ public class TestsLogin {
 	// Caso o e-mail não exista, retornar erro com status apropriado mais a mensagem "Usuário e/ou senha inválidos"
 	@Test
 	public void testLoginEmailNotExist() {
-		LoginDto loginDto = createLoginDto();
+		User loginDto = createUserLogin();
 		loginDto.setEmail(loginDto.getEmail().concat("r"));
 		Response<User> response = userService.login(loginDto);
 		HttpStatus status = response.getStatus();
@@ -79,7 +78,7 @@ public class TestsLogin {
 	// Caso o e-mail exista mas a senha não bata, retornar o status apropriado 401 mais a mensagem "Usuário e/ou senha inválidos"
 	@Test
 	public void testLoginPasswordNotExist() {
-		LoginDto loginDto = createLoginDto();
+		User loginDto = createUserLogin();
 		loginDto.setPassword(loginDto.getPassword().concat("r"));
 		Response<User> response = userService.login(loginDto);
 		HttpStatus status = response.getStatus();
@@ -91,7 +90,7 @@ public class TestsLogin {
 	//Caso o token não exista, retornar erro com status apropriado com a mensagem "Não autorizado".
 	@Test
 	public void testLoginTokenNotExist() {
-		LoginDto loginDto = createLoginDto();
+		User loginDto = createUserLogin();
 		Response<User> findByEmail = userService.findByEmail(loginDto.getEmail());
 		modificarToken1(findByEmail);
 		Response<User> response = userService.login(loginDto);
@@ -111,8 +110,8 @@ public class TestsLogin {
 		}
 	}
 	
-	private LoginDto createLoginDto() {
-		LoginDto dto = new LoginDto("joao@silva.org","hunter2");
+	private User createUserLogin() {
+		User dto = new User("joao@silva.org","hunter2");
 		return dto;
 	}
 	

@@ -15,7 +15,6 @@ import javax.crypto.spec.SecretKeySpec;
 
 import org.springframework.stereotype.Component;
 
-import com.desafio.concrete.entidades.LoginDto;
 import com.desafio.concrete.entidades.User;
 
 @Component
@@ -45,23 +44,14 @@ public class Util {
 	}
 
 	public void encriptyPassword(Object object) {
-		LoginDto loginDto = null;
 		User user = null;
 		try {
 			MessageDigest m = MessageDigest.getInstance("MD5");
-			if (object instanceof LoginDto) {
-				loginDto = LoginDto.class.cast(object);
-				m.update(loginDto.getPassword().getBytes(), 0, loginDto.getPassword().length());
-				byte[] digest = m.digest();
-				String hexa = new BigInteger(1,digest).toString(16);
-				loginDto.setPassword(hexa);
-			} else {
-				user = User.class.cast(object);
-				m.update(user.getPassword().getBytes(), 0, user.getPassword().length());
-				byte[] digest = m.digest();
-				String hexa = new BigInteger(1,digest).toString(16);
-				user.setPassword(hexa);
-			}
+			user = User.class.cast(object);
+			m.update(user.getPassword().getBytes(), 0, user.getPassword().length());
+			byte[] digest = m.digest();
+			String hexa = new BigInteger(1,digest).toString(16);
+			user.setPassword(hexa);
 		} catch (NoSuchAlgorithmException e) {
 		    e.printStackTrace();
 		}
