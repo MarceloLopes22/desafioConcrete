@@ -59,8 +59,6 @@ public class ConcreteApplication {
 		marcelo.setEmail("marcelomlopes2@gmail.com");
 		marcelo.setPassword("123456");
 		marcelo.setProfile(Profile.ROLE_ADMIN);
-		util.gerarUuid(marcelo);
-		util.encriptyPassword(marcelo);
 		List<Phone> createPhones = createPhones();
 		marcelo.setPhones(createPhones);
 		
@@ -82,8 +80,6 @@ public class ConcreteApplication {
 		mFilho.setEmail("mfilho@gmail.com");
 		mFilho.setPassword("1234");
 		mFilho.setProfile(Profile.ROLE_USUARIO);
-		util.gerarUuid(mFilho);
-		util.encriptyPassword(mFilho);
 		List<Phone> createPhones = createPhones();
 		mFilho.setPhones(createPhones);
 		return mFilho;

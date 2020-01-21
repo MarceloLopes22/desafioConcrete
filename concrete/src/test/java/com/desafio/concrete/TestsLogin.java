@@ -34,11 +34,12 @@ public class TestsLogin {
     
 	@Test
 	public void testLoginSucesso() {
-		User loginDto = createUserLogin();
-		Response<User> login = userService.login(loginDto);
+		userService.create(createUser());
+		User user = createUserLogin();
+		Response<User> login = userService.login(user);
 		HttpStatus status = login.getStatus();
-		assertEquals(loginDto.getEmail(), login.getDado().getEmail());
-		assertEquals(loginDto.getPassword(), login.getDado().getPassword());
+		assertEquals(user.getEmail(), login.getDado().getEmail());
+		assertEquals(user.getPassword(), login.getDado().getPassword());
 		assertEquals(HttpStatus.OK.value(), status.value());
 	}
 	
